@@ -2,11 +2,12 @@ const { password } = require('./config.js');
 
 const Pool = require('pg').Pool;
 const pool = new Pool({
-  user: 'tahseen',
-  host: 'localhost',
-  database: 'api',
+  user: 'tahseenio',
+  host: 'db.bit.io',
+  database: 'tahseenio/PGExpressAPI',
   password: password,
   port: 5432,
+  ssl: true,
 });
 
 const getUsers = (request, response) => {
