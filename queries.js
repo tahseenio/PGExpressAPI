@@ -1,5 +1,5 @@
 const { password, user, host, database } = require('./config.js');
-const bcrypt = require('bcryptjs');
+const { hashPassword, verifyPassword } = require('./helper.js');
 
 const Pool = require('pg').Pool;
 const pool = new Pool({
@@ -33,30 +33,31 @@ const getUserById = (request, response) => {
 
 const createUser = async (request, response) => {
   const { username, password } = request.body;
-  const salt = await bcrypt.genSalt(10);
-  const hash = await bcrypt.hash(password, salt);
 
-  pool.query(
-    'INSERT INTO users (username, password) VALUES ($1, $2) RETURNING *',
-    [username, hash],
-    (error, results) => {
-      if (error) {
-        throw error;
+  if (await usernameExists(username)) {
+    response.status(403).send(`Username, (${username}) already exists`);
+  } else {
+    const hash = await hashPassword(password);
+
+    pool.query(
+      'INSERT INTO users (username, password) VALUES ($1, $2) RETURNING *',
+      [username, hash],
+      (error, results) => {
+        if (error) {
+          throw error;
+        }
+        response
+          .status(201)
+          .send(`User (${username}) added with ID: ${results.rows[0].id}`);
       }
-      response
-        .status(201)
-        .send(
-          `User (${username}) with email (${username}) added with ID: ${results.rows[0].id}`
-        );
-    }
-  );
+    );
+  }
 };
 
 const updateUser = async (request, response) => {
   const id = parseInt(request.params.id);
   const { username, password } = request.body;
-  const salt = await bcrypt.genSalt(10);
-  const hash = await bcrypt.hash(password, salt);
+  const hash = await hashPassword(password);
 
   pool.query(
     'UPDATE users SET name = $1, email = $2 WHERE id = $3',
@@ -81,12 +82,24 @@ const deleteUser = (request, response) => {
   });
 };
 
-const emailExists = async (email) => {
-  const data = await pool.query('SELECT * FROM users WHERE email=$1', [email]);
-  if (data.rowCount == 0) return false;
-  console.log(data.rowCount);
-  return data.rows[0];
+const usernameExists = async (username) => {
+  const data = await pool.query('SELECT * FROM users WHERE username=$1', [
+    username,
+  ]);
+  return data.rowCount !== 0;
 };
+
+// (async () => console.log(await usernameExists('matt')))(); //true
+
+const verifyUser = async (username, password) => {
+  const result = await pool.query('SELECT * FROM users WHERE username=$1', [
+    username,
+  ]);
+  const HashedPassword = result.rows[0].password;
+  return await verifyPassword(password, HashedPassword);
+};
+
+// (async () => console.log(await verifyUser('tash', 'tash')))(); //true means user authorized
 
 module.exports = {
   getUsers,
