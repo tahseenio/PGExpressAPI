@@ -101,10 +101,28 @@ const verifyUser = async (username, password) => {
 
 // (async () => console.log(await verifyUser('tash', 'tash')))(); //true means user authorized
 
+const login = async (request, response) => {
+  const { username, password } = request.body;
+
+  if (await usernameExists(username)) {
+    const isVerified = await verifyUser(username, password);
+    if (isVerified) {
+      response.status(200).send(`User ${username} is authorized`);
+    } else {
+      response.status(404).send(`User ${username} is unauthorized`);
+    }
+  } else {
+    response
+      .status(403)
+      .send(`No username exists. Please create a username and try again`);
+  }
+};
+
 module.exports = {
   getUsers,
   getUserById,
   createUser,
   updateUser,
   deleteUser,
+  login,
 };
