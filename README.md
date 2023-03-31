@@ -27,7 +27,7 @@ with JSON body:
 }
 ```
 
-### Update a user with id (POST REQUEST)
+### Update a user with id (PUT REQUEST)
 ```js
 /users/{id}
 ```
