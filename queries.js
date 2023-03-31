@@ -60,7 +60,7 @@ const updateUser = async (request, response) => {
   const hash = await hashPassword(password);
 
   pool.query(
-    'UPDATE users SET name = $1, email = $2 WHERE id = $3',
+    'UPDATE users SET username = $1, password = $2 WHERE id = $3',
     [username, hash, id],
     (error, results) => {
       if (error) {
