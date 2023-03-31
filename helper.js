@@ -20,5 +20,3 @@ module.exports = {
   hashPassword,
   verifyPassword,
 };
-
-hashPassword('MAtt');
