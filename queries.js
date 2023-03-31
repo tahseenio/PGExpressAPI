@@ -8,7 +8,7 @@ const pool = new Pool({
   database: database,
   password: password,
   port: 5432,
-  //ssl: true,
+  ssl: true,
 });
 
 const getUsers = (request, response) => {
