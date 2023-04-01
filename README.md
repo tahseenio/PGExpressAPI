@@ -1,5 +1,5 @@
 # PGExpressAPI
-https://pgexpressapi.onrender.com/
+https://pg-express-api.vercel.app/
 
 Created using node, express and PostgreSQL for the backend.
 
