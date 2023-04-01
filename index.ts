@@ -1,7 +1,7 @@
-const db = require('./queries');
-const { port } = require('./config.js');
-const express = require('express');
-const app = express();
+import * as db from './queries.js';
+import { port } from './config.js';
+import express, { Express, Response, Request } from 'express';
+const app: Express = express();
 
 app.use(express.json());
 app.use(
@@ -10,7 +10,7 @@ app.use(
   })
 );
 
-app.get('/', (request, response) => {
+app.get('/', (request: Request, response: Response) => {
   response.json({ info: 'Node.js, Express, and Postgres API' });
 });
 
@@ -24,5 +24,3 @@ app.post('/login', db.login);
 app.listen(port, () => {
   console.log(`App running on http://localhost:${port}`);
 });
-
-module.exports = app; //Needed for vercel to be able to host

@@ -1,7 +1,8 @@
-const { password, user, host, database } = require('./config.js');
-const { hashPassword, verifyPassword } = require('./helper.js');
-
-const Pool = require('pg').Pool;
+import { Response, Request } from 'express';
+import { password, user, host, database } from './config.js';
+import { hashPassword, verifyPassword } from './helper.js';
+import pg from 'pg';
+const { Pool } = pg;
 const pool = new Pool({
   user: user,
   host: host,
@@ -11,27 +12,36 @@ const pool = new Pool({
   ssl: true,
 });
 
-const getUsers = (request, response) => {
-  pool.query('SELECT * FROM users ORDER BY id ASC', (error, results) => {
-    if (error) {
-      throw error;
+export const getUsers = (request: Request, response: Response) => {
+  pool.query(
+    'SELECT * FROM users ORDER BY id ASC',
+    (error: Error, results: pg.QueryResult) => {
+      console.log(results);
+      console.log(typeof results);
+      if (error) {
+        throw error;
+      }
+      response.status(200).json(results);
     }
-    response.status(200).json(results.rows);
-  });
+  );
 };
 
-const getUserById = (request, response) => {
+export const getUserById = (request: Request, response: Response) => {
   const id = parseInt(request.params.id);
 
-  pool.query('SELECT * FROM users WHERE id = $1', [id], (error, results) => {
-    if (error) {
-      throw error;
+  pool.query(
+    'SELECT * FROM users WHERE id = $1',
+    [id],
+    (error: Error, results: pg.QueryResult) => {
+      if (error) {
+        throw error;
+      }
+      response.status(200).json(results.rows);
     }
-    response.status(200).json(results.rows);
-  });
+  );
 };
 
-const createUser = async (request, response) => {
+export const createUser = async (request: Request, response: Response) => {
   const { username, password } = request.body;
 
   if (await usernameExists(username)) {
@@ -42,10 +52,11 @@ const createUser = async (request, response) => {
     pool.query(
       'INSERT INTO users (username, password) VALUES ($1, $2) RETURNING *',
       [username, hash],
-      (error, results) => {
+      (error: Error, results: pg.QueryResult) => {
         if (error) {
           throw error;
         }
+        console.log(results);
         response
           .status(201)
           .send(`User (${username}) added with ID: ${results.rows[0].id}`);
@@ -54,7 +65,7 @@ const createUser = async (request, response) => {
   }
 };
 
-const updateUser = async (request, response) => {
+export const updateUser = async (request: Request, response: Response) => {
   const id = parseInt(request.params.id);
   const { username, password } = request.body;
   const hash = await hashPassword(password);
@@ -62,7 +73,7 @@ const updateUser = async (request, response) => {
   pool.query(
     'UPDATE users SET username = $1, password = $2 WHERE id = $3',
     [username, hash, id],
-    (error, results) => {
+    (error: Error, results: pg.QueryResult) => {
       if (error) {
         throw error;
       }
@@ -71,18 +82,22 @@ const updateUser = async (request, response) => {
   );
 };
 
-const deleteUser = (request, response) => {
+export const deleteUser = (request: Request, response: Response) => {
   const id = parseInt(request.params.id);
 
-  pool.query('DELETE FROM users WHERE id = $1', [id], (error, results) => {
-    if (error) {
-      throw error;
+  pool.query(
+    'DELETE FROM users WHERE id = $1',
+    [id],
+    (error: Error, results: pg.QueryResult) => {
+      if (error) {
+        throw error;
+      }
+      response.status(200).send(`User deleted with ID: ${id}`);
     }
-    response.status(200).send(`User deleted with ID: ${id}`);
-  });
+  );
 };
 
-const usernameExists = async (username) => {
+export const usernameExists = async (username: string) => {
   const data = await pool.query('SELECT * FROM users WHERE username=$1', [
     username,
   ]);
@@ -91,7 +106,7 @@ const usernameExists = async (username) => {
 
 // (async () => console.log(await usernameExists('matt')))(); //true
 
-const verifyUser = async (username, password) => {
+export const verifyUser = async (username: string, password: string) => {
   const result = await pool.query('SELECT * FROM users WHERE username=$1', [
     username,
   ]);
@@ -101,11 +116,11 @@ const verifyUser = async (username, password) => {
 
 // (async () => console.log(await verifyUser('tash', 'tash')))(); //true means user authorized
 
-const login = async (request, response) => {
+export const login = async (request: Request, response: Response) => {
   const { username, password } = request.body;
 
   if (await usernameExists(username)) {
-    const isVerified = await verifyUser(username, password);
+    const isVerified: Boolean = await verifyUser(username, password);
     if (isVerified) {
       response.status(200).send(`User ${username} is authorized`);
     } else {
@@ -116,13 +131,4 @@ const login = async (request, response) => {
       .status(403)
       .send(`No username exists. Please create a username and try again`);
   }
-};
-
-module.exports = {
-  getUsers,
-  getUserById,
-  createUser,
-  updateUser,
-  deleteUser,
-  login,
 };
