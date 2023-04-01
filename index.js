@@ -25,4 +25,4 @@ app.listen(port, () => {
   console.log(`App running on http://localhost:${port}`);
 });
 
-module.exports = app;
+module.exports = app; //Needed for vercel to be able to host
