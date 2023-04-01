@@ -21,12 +21,10 @@ const pool = new Pool({
 });
 export const getUsers = (request, response) => {
     pool.query('SELECT * FROM users ORDER BY id ASC', (error, results) => {
-        console.log(results);
-        console.log(typeof results);
         if (error) {
             throw error;
         }
-        response.status(200).json(results);
+        response.status(200).json(results.rows);
     });
 };
 export const getUserById = (request, response) => {
@@ -49,7 +47,7 @@ export const createUser = (request, response) => __awaiter(void 0, void 0, void 
             if (error) {
                 throw error;
             }
-            console.log(results);
+            // console.log(results);
             response
                 .status(201)
                 .send(`User (${username}) added with ID: ${results.rows[0].id}`);

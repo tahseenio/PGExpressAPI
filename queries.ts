@@ -16,12 +16,10 @@ export const getUsers = (request: Request, response: Response) => {
   pool.query(
     'SELECT * FROM users ORDER BY id ASC',
     (error: Error, results: pg.QueryResult) => {
-      console.log(results);
-      console.log(typeof results);
       if (error) {
         throw error;
       }
-      response.status(200).json(results);
+      response.status(200).json(results.rows);
     }
   );
 };
@@ -56,7 +54,7 @@ export const createUser = async (request: Request, response: Response) => {
         if (error) {
           throw error;
         }
-        console.log(results);
+        // console.log(results);
         response
           .status(201)
           .send(`User (${username}) added with ID: ${results.rows[0].id}`);
